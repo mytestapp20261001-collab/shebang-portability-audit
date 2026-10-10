@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "slug": "shebang-portability-audit",
+  "domain": "filesystem",
+  "guidance_group": "light",
+  "source_commit": "1286096c10a23bbb04aca83679ae3c31f3326030",
+  "source_repository": "mytestapp20261001-collab/mytest-engineering-toolbox",
+  "source_repository_id": 1411411288,
+  "source_path": "tools/shebang-portability-audit",
+  "root_path": ".",
+  "publication_status": "prepared_only; coordinator verifies final repository identity and remote CI",
+  "expected_repository": "mytestapp20261001-collab/shebang-portability-audit",
+  "repository_id": null,
+  "preserved_files": [
+    {
+      "path": "README.md",
+      "size_bytes": 3585,
+      "sha256": "b01451f6c6833438e3a35bf8a438859acd78f205c72e3010655de39d417967bc",
+      "git_blob_sha1": "f53cf16851bfdcaad98d08f9ccab559a94d8772a",
+      "utf8": true,
+      "source_path": "tools/shebang-portability-audit/README.md"
+    },
+    {
+      "path": "SKILL.md",
+      "size_bytes": 1164,
+      "sha256": "bbec54f4c98f087d4a3930391882ac44af8a6abdc5fa9fb1a36cab6438e665e1",
+      "git_blob_sha1": "513031a8a303d6c53a1e06a25fc45ec3ec7e0db4",
+      "utf8": true,
+      "source_path": "tools/shebang-portability-audit/SKILL.md"
+    },
+    {
+      "path": "VALIDATION.md",
+      "size_bytes": 855,
+      "sha256": "86d7f11b54bc632d505e7e69f4589028991e39083edb61907116e0ee042c5470",
+      "git_blob_sha1": "61a3da491df1a3493904bdac06a84fdc4e0ec00f",
+      "utf8": true,
+      "source_path": "tools/shebang-portability-audit/VALIDATION.md"
+    },
+    {
+      "path": "_support.py",
+      "size_bytes": 6766,
+      "sha256": "ce5feab729b0dc2ab1019bb1808f06795e9c5cd98a220c61dcc464275938eca4",
+      "git_blob_sha1": "b52ce55f79b8b6eedf382eb6b12f60d1fb5f8291",
+      "utf8": true,
+      "source_path": "tools/shebang-portability-audit/_support.py"
+    },
+    {
+      "path": "examples/run_examples.py",
+      "size_bytes": 641,
+      "sha256": "63c3b21e61c52f8ff4aa323e1df633054dab0deea4c2e289786430f886967312",
+      "git_blob_sha1": "05e5d72dede1dbb70f6e6ce94487fbe046aa9b66",
+      "utf8": true,
+      "source_path": "tools/shebang-portability-audit/examples/run_examples.py"
+    },
+    {
+      "path": "test_tool.py",
+      "size_bytes": 5428,
+      "sha256": "055234ba98ec164e6403543f5ceecbb5c23951edb4f85eed650d542fcf744efd",
+      "git_blob_sha1": "252f4e99a0aa0909a91aef838f31f6c1433b63f4",
+      "utf8": true,
+      "source_path": "tools/shebang-portability-audit/test_tool.py"
+    },
+    {
+      "path": "tool.py",
+      "size_bytes": 4004,
+      "sha256": "a7f763e7a6ed6671842f42eb685bfc930de91ede9a0427e3a575d7cb7fdbaeef",
+      "git_blob_sha1": "2d154a9f3855932f9ff517e9225b60c7123497e6",
+      "utf8": true,
+      "source_path": "tools/shebang-portability-audit/tool.py"
+    },
+    {
+      "path": "LICENSE",
+      "size_bytes": 1076,
+      "sha256": "dce76471613629e93f3f98b7aaa6f72ff9adb88204a3f83d3045952017ab2f46",
+      "git_blob_sha1": "677c4463d59b560db9c1fde1052eff6eefa6441a",
+      "utf8": true,
+      "source_path": "LICENSE"
+    },
+    {
+      "path": ".gitignore",
+      "size_bytes": 62,
+      "sha256": "e4d5aecc4cd36f593c2e7f3dad08b24261b13466b898004a445614058d29d8de",
+      "git_blob_sha1": "fe9f8fb619601213cbfef4f6eadb5d413d8f7f01",
+      "utf8": true,
+      "source_path": ".gitignore"
+    }
+  ],
+  "readme_checks": [
+    {
+      "label": "README synthetic positive/negative runner",
+      "args": [
+        "examples/run_examples.py"
+      ],
+      "expected_exit": 0,
+      "output": "example-json",
+      "documented_command": "python3 examples/run_examples.py"
+    },
+    {
+      "label": "CLI help",
+      "args": [
+        "tool.py",
+        "--help"
+      ],
+      "expected_exit": 0,
+      "output": "help"
+    },
+    {
+      "label": "CLI missing input",
+      "args": [
+        "tool.py"
+      ],
+      "expected_exit": 2,
+      "output": "json"
+    },
+    {
+      "label": "CLI unknown argument",
+      "args": [
+        "tool.py",
+        "--unsupported-migration-test"
+      ],
+      "expected_exit": 2,
+      "output": "json"
+    }
+  ]
+}
