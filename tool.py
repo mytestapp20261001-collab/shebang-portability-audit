@@ -13,8 +13,17 @@ def audit(path, *, allow_env_s=False,allow_interpreter=(),require_executable=Fal
     if isinstance(allow_interpreter,str) or any(not isinstance(p,str) or not p.startswith('/') for p in allow_interpreter):
         raise InputError('allowed interpreters must be an iterable of absolute paths')
     with anchored(path) as fd:
-        data=os.read(fd,max_header_bytes+1);mode=os.fstat(fd).st_mode
-    line=data.split(b'\n',1)[0]
+        # Bound each syscall independently of the user-selected header budget.
+        # Stop at the first newline instead of allocating the entire budget.
+        data=bytearray()
+        while len(data)<=max_header_bytes:
+            chunk=os.read(fd,min(4096,max_header_bytes+1-len(data)))
+            if not chunk:break
+            first,separator,_=chunk.partition(b'\n')
+            data.extend(first)
+            if separator:break
+        mode=os.fstat(fd).st_mode
+    line=bytes(data)
     if len(line)>max_header_bytes:raise InputError('shebang header byte limit exceeded')
     report=Report(TOOL,max_findings);summary={'header_bytes':len(line),'executable_bit':bool(mode&0o111)}
     if require_executable and not mode&0o111:report.add('missing_executable_bit')
