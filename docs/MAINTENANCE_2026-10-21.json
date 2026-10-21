@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "repository_id": 1412950597,
+  "base_commit": "5309d3e77f76d5955e8d2aa119d861070511363c",
+  "date": "2026-10-21",
+  "scope": "Authorized maintenance after the fixed migration acceptance; original MIGRATION.json is unchanged. No experiment allocation or promotional text changed.",
+  "changes": [
+    {
+      "path": "test_tool.py",
+      "original_sha256": "055234ba98ec164e6403543f5ceecbb5c23951edb4f85eed650d542fcf744efd",
+      "current_sha256": "4e3ab2dca6dfadf101660549b16643b49590fd166d0c11e1fabb648cca02c46e",
+      "reason": "Regression coverage and maintenance-receipt rejection tests."
+    },
+    {
+      "path": "tool.py",
+      "original_sha256": "a7f763e7a6ed6671842f42eb685bfc930de91ede9a0427e3a575d7cb7fdbaeef",
+      "current_sha256": "06c0a262c8d39cc34ec063309d4047a48ae25742b00dcad8d5a4d4e6f14fd3b5",
+      "reason": "Read shebangs in bounded chunks and stop at newline, including arbitrarily large positive header budgets."
+    }
+  ]
+}

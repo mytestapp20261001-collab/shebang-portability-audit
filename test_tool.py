@@ -46,6 +46,32 @@ class Tests(unittest.TestCase):
     def test_only_header_read_no_execution(self):
         p=self.write(b'#!/bin/sh\n'+b'\xff'*100000);self.assertEqual(tool.audit(p,max_header_bytes=100)['status'],'pass')
         self.assertFalse((self.root/'executed').exists());self.assertEqual(p.stat().st_size,100010)
+    def test_huge_header_budget_uses_bounded_reads(self):
+        p=self.write(b'#!/bin/sh\n'+b'x'*100000)
+        actual_read=os.read
+        sizes=[]
+        def bounded_read(fd,size):
+            sizes.append(size)
+            return actual_read(fd,size)
+        with mock.patch.object(tool.os,'read',side_effect=bounded_read):
+            self.assertEqual(tool.audit(p,max_header_bytes=10**30)['status'],'pass')
+        self.assertEqual(len(sizes),1)
+        self.assertLessEqual(max(sizes),4096)
+        result=subprocess.run([sys.executable,str(Path(__file__).with_name('tool.py')),str(p),
+                               '--max-header-bytes',str(10**30)],capture_output=True,text=True,timeout=10)
+        self.assertEqual(result.returncode,0,result.stderr)
+        self.assertEqual(result.stderr,'')
+        self.assertEqual(json.loads(result.stdout)['status'],'pass')
+
+    def test_exact_header_budget_and_multichunk(self):
+        for ending in (b'',b'\nbody'):
+            p=self.write(b'#!/bin/sh'+ending)
+            self.assertEqual(tool.audit(p,max_header_bytes=9)['status'],'pass')
+            self.assertEqual(tool.audit(p,max_header_bytes=8)['status'],'error')
+        p=self.write(b'#!/bin/sh '+b'x'*5000+b'\nbody')
+        self.assertEqual(tool.audit(p,max_header_bytes=5010,max_portable_bytes=5010)['status'],'pass')
+        self.assertEqual(tool.audit(p,max_header_bytes=5009)['status'],'error')
+
     def test_limits_symlink_and_permission(self):
         p=self.write(b'#!/bin/sh '+b'x'*200);self.assertIn('shebang_length_policy_exceeded',self.codes(tool.audit(p)));self.assertEqual(tool.audit(p,max_header_bytes=10)['status'],'error')
         q=self.root/'link';q.symlink_to(p);self.assertEqual(tool.audit(q)['status'],'error')
@@ -71,5 +97,37 @@ class Tests(unittest.TestCase):
             with self.assertRaises(_support.InputError):list(_support.walk(fd,max_entries=2))
         with mock.patch.object(_support.os,'name','unsupported'):
             with self.assertRaises(_support.InputError):_support._flags()
+
+
+class MaintenanceReceiptTests(unittest.TestCase):
+    def test_maintenance_receipt_is_fail_closed(self):
+        import copy
+        import importlib.util
+        root = Path(__file__).resolve().parent
+        spec = importlib.util.spec_from_file_location('release_validation', root / 'scripts/validate_release.py')
+        validation = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(validation)
+        record = json.loads((root / 'docs/MIGRATION.json').read_text())
+        receipt = json.loads((root / 'docs/MAINTENANCE_2026-10-21.json').read_text())
+        original = {entry['path']: entry['sha256'] for entry in record['preserved_files']}
+        self.assertEqual(validation.maintenance_hashes(record, None), original)
+        result = validation.maintenance_hashes(record, receipt)
+        for change in receipt['changes']:
+            self.assertEqual(result[change['path']], change['current_sha256'])
+        invalid = []
+        for field, value in [('path', '../tool.py'), ('path', 'README.md'),
+                             ('original_sha256', '0' * 64), ('current_sha256', 'invalid'), ('reason', '')]:
+            candidate = copy.deepcopy(receipt)
+            candidate['changes'][0][field] = value
+            invalid.append(candidate)
+        candidate = copy.deepcopy(receipt)
+        candidate['changes'].append(candidate['changes'][0].copy())
+        invalid.append(candidate)
+        candidate = copy.deepcopy(receipt)
+        candidate['repository_id'] = 0
+        invalid.append(candidate)
+        for candidate in invalid:
+            with self.subTest(candidate=candidate), self.assertRaises(ValueError):
+                validation.maintenance_hashes(record, candidate)
 
 if __name__=="__main__":unittest.main()
