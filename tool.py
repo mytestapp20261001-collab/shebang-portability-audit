@@ -10,7 +10,11 @@ BASELINE=('/bin/sh','/usr/bin/env')
 @guarded(TOOL)
 def audit(path, *, allow_env_s=False,allow_interpreter=(),require_executable=False,max_header_bytes=4096,max_portable_bytes=127,max_findings=1000):
     limits(max_header_bytes=max_header_bytes,max_portable_bytes=max_portable_bytes,max_findings=max_findings)
-    if isinstance(allow_interpreter,str) or any(not isinstance(p,str) or not p.startswith('/') for p in allow_interpreter):
+    if isinstance(allow_interpreter,str):
+        raise InputError('allowed interpreters must be an iterable of absolute paths')
+    # Materialize once: validation must not consume a caller's iterator.
+    allow_interpreter=tuple(allow_interpreter)
+    if any(not isinstance(p,str) or not p.startswith('/') for p in allow_interpreter):
         raise InputError('allowed interpreters must be an iterable of absolute paths')
     with anchored(path) as fd:
         # Bound each syscall independently of the user-selected header budget.

@@ -99,6 +99,18 @@ class Tests(unittest.TestCase):
             with self.assertRaises(_support.InputError):_support._flags()
 
 
+    def test_one_shot_allowed_interpreters(self):
+        p=self.write(b'#!/usr/bin/python3\n')
+        expected=tool.audit(p,allow_interpreter=['/usr/bin/python3'])
+        self.assertEqual(expected['status'],'pass')
+        for allowed in [iter(['/usr/bin/python3']), (x for x in ['/usr/bin/python3']),
+                        iter(['/usr/bin/perl','/usr/bin/python3'])]:
+            self.assertEqual(tool.audit(p,allow_interpreter=allowed),expected)
+        for allowed in [iter(['relative']), iter(['/usr/bin/python3',1]), '/usr/bin/python3', None]:
+            self.assertEqual(tool.audit(p,allow_interpreter=allowed)['status'],'error')
+        self.assertIn('interpreter_outside_policy', self.codes(tool.audit(p,allow_interpreter=iter([]))))
+
+
 class MaintenanceReceiptTests(unittest.TestCase):
     def test_maintenance_receipt_is_fail_closed(self):
         import copy
